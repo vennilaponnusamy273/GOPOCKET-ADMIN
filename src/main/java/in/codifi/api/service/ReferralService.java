@@ -104,7 +104,7 @@ public class ReferralService implements IReferralService {
 
 	public void sendMessagetoMobile(String Message, long mobileNumber) {
 		try {
-			String shortenUrl = restService.shortenUrl(Message);
+			String shortenUrl = restService.generateShortLink(Message);
 			System.out.println("the shortenUrl" + shortenUrl);
 			ismsRestService.sendSms(shortenUrl, mobileNumber);
 		} catch (Exception e) {

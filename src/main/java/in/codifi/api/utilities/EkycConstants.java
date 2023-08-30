@@ -54,4 +54,8 @@ public class EkycConstants {
 	
 	public static final String URL = "url";
 	public static final String SHORT_URL = "shortLink";
+	
+	public static final String HTTP_GET = "GET";
+	public static final String IVR_ACCEPT = "Accept";
+	public static final String CONSTANT_APPLICATION_JSON = "application/json";
 }

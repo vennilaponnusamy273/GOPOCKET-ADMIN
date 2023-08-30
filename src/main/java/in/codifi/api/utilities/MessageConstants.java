@@ -43,5 +43,5 @@ public class MessageConstants {
 	public static final String REFERRAL_BY_NULL = "Referral by is null";
 	public static final String MOBILE_NO_NULL = "Mobile Number is null";
 	public static final String EKYC_URL = "https://ekyc.gopocket.in/?refBy=";
-
+	public static final String FAILED_HTTP_CODE = "Failed : HTTP error code :";
 }

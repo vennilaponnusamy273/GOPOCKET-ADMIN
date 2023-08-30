@@ -49,5 +49,7 @@ public class ApplicationProperties {
 	String smsRefSecondText;
 	@ConfigProperty(name = "appconfig.ipv.url.shortner.token")
 	String ivrUrlShortnerToken;
+	@ConfigProperty(name = "appconfig.bitly.base.url")
+	String bitlyBaseUrl;
 	
 }
