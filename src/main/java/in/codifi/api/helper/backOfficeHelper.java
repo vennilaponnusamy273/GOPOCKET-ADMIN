@@ -1,27 +1,44 @@
 package in.codifi.api.helper;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.gson.JsonObject;
+
+import in.codifi.api.config.ApplicationProperties;
 import in.codifi.api.entity.AddressEntity;
 import in.codifi.api.entity.ApplicationUserEntity;
 import in.codifi.api.entity.BankEntity;
 import in.codifi.api.entity.IvrEntity;
+import in.codifi.api.entity.KraKeyValueEntity;
 import in.codifi.api.entity.PaymentEntity;
 import in.codifi.api.entity.ProfileEntity;
+import in.codifi.api.entity.ReferralEntity;
 import in.codifi.api.entity.ResponseCkyc;
+import in.codifi.api.entity.SegmentEntity;
 import in.codifi.api.repository.AddressRepository;
 import in.codifi.api.repository.ApplicationUserRepository;
 import in.codifi.api.repository.BankRepository;
 import in.codifi.api.repository.CkycResponseRepos;
 import in.codifi.api.repository.IvrRepository;
+import in.codifi.api.repository.KraKeyValueRepository;
 import in.codifi.api.repository.PaymentRepository;
 import in.codifi.api.repository.ProfileRepository;
-import in.codifi.api.request.model.BankAddressModel;
+import in.codifi.api.repository.ReferralRepository;
+import in.codifi.api.repository.SegmentRepository;
 import in.codifi.api.utilities.CommonMethods;
 import in.codifi.api.utilities.StringUtil;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 @ApplicationScoped
 public class backOfficeHelper {
@@ -42,274 +59,388 @@ public class backOfficeHelper {
 	IvrRepository ivrRepository;
 	@Inject
 	PaymentRepository paymentRepository;
+	@Inject
+	KraKeyValueRepository kraKeyValueRepository;
+	@Inject
+	ReferralRepository referralRepository;
+	@Inject
+	SegmentRepository segmentRepository;
+	@Inject
+	ApplicationProperties props;
 	
-	public  String generateXMLContent(long  applicationId ) {
-		 String xmlData = "";
-	        StringBuffer createDocuBuffer = new StringBuffer();
-	        Optional<ApplicationUserEntity> userEntity = applicationUserRepository.findById(applicationId);
+	public  String generateJsonContenet(long  applicationId ) throws ParseException {
+		 String jsonData = "";
+		   Optional<ApplicationUserEntity> userEntity = applicationUserRepository.findById(applicationId);
 	        ProfileEntity getProfile = profileRepository.findByapplicationId(applicationId);
 	        BankEntity getBankDetails = bankRepository.findByapplicationId(applicationId);
-	        BankAddressModel model = commonMethods.findBankAddressByIfsc(getBankDetails.getIfsc());
 	        AddressEntity getAddress = addressRepository.findByapplicationId(applicationId);
 	        ResponseCkyc responseCkyc=ckycResponseRepos.findByApplicationId(applicationId);
 	        IvrEntity ivr=ivrRepository.findByApplicationId(applicationId);
 	        PaymentEntity paymentEntity=paymentRepository.findByApplicationId(applicationId);
 	        if(userEntity!=null||getProfile!=null&&getBankDetails!=null||getAddress!=null&&responseCkyc!=null&&ivr!=null&&paymentEntity!=null) {
-	        createDocuBuffer.append("<root>");
-	        createDocuBuffer.append("<Fileheader>");
-	        createDocuBuffer.append("<entityid>eKYC_P9</entityid>");
-	        createDocuBuffer.append("<entityname>PhillipCapital (India) Pvt. Ltd</entityname>");
-	        createDocuBuffer.append("<filegendttm>1646720944604</filegendttm>");
-	        createDocuBuffer.append("<batchno>5</batchno>");
-	        createDocuBuffer.append("<totalrecs>5</totalrecs>");
-	        createDocuBuffer.append("<instigorefno>5</instigorefno>");
-	        createDocuBuffer.append("</Fileheader>");
-	        createDocuBuffer.append("<FileDetail>");
-	        createDocuBuffer.append("<ClientRecord>");
-	        createDocuBuffer.append("<recordheader>");
-	        createDocuBuffer.append("<recordtype>01</recordtype>");
-	        createDocuBuffer.append("<sritranstnid>5</sritranstnid>");
-	        createDocuBuffer.append("<clienttype>I</clienttype>");
-	        createDocuBuffer.append("<appdate>2022-03-08</appdate>");
-	        createDocuBuffer.append("<apptime>00:00:00.00</apptime>");
-	        createDocuBuffer.append("<esign>" + (userEntity.get().getEsignCompleted() == 1 ? "Y" : "N") + "</esign>");
-	        createDocuBuffer.append("<dpveridate>2022-03-0800:00:00.00</dpveridate>");
-	        createDocuBuffer.append("<branch/>");
-	        createDocuBuffer.append("<rm/>");
-	        createDocuBuffer.append("<pms/>");
-	        createDocuBuffer.append("</recordheader>");
-	        createDocuBuffer.append("<firstholder>");
-	        createDocuBuffer.append("<clientdetails>");
-	        createDocuBuffer.append("<fhpan>"+userEntity.get().getPanNumber()+"</fhpan>");
-	        createDocuBuffer.append("<fhpanflag>"+(userEntity.get().getPanConfirm() == 1 ?"Y":"N")+"</fhpanflag>");
-	        createDocuBuffer.append("<fhckycno/>");
-	        createDocuBuffer.append("<fhprefix>"+responseCkyc.getPrefix()+"</fhprefix>");
-	        createDocuBuffer.append("<fhfirstname>"+userEntity.get().getFirstName()+"</fhfirstname>");
-	        createDocuBuffer.append("<fhmidname>"+userEntity.get().getMiddleName()+"</fhmidname>");
-	        createDocuBuffer.append("<fhlastname>"+userEntity.get().getLastName()+"</fhlastname>");
-	        createDocuBuffer.append("<fhfullname>"+userEntity.get().getUserName()+"</fhfullname>");
-	        createDocuBuffer.append("<fhresidentialstatus>01</fhresidentialstatus>");
-			createDocuBuffer.append(" <fhnationality>01</fhnationality>");
-			createDocuBuffer.append("<fhpep>N</fhpep>");
-			String occupation = "";
-			if (StringUtil.isEqual(getProfile.getOccupation(), "Public Sector")) {
-				occupation = "1";
-			} else if (StringUtil.isEqual(getProfile.getOccupation(), "Private Sector Service")) {
-				occupation = "2";
-			} else if (StringUtil.isEqual(getProfile.getOccupation(), "Government Service")) {
-				occupation = "3";
-			} else if (StringUtil.isEqual(getProfile.getOccupation(), "Business")) {
-				occupation = "4";
-			} else if (StringUtil.isEqual(getProfile.getOccupation(), "Professional")) {
-				occupation = "5";
-			} else if (StringUtil.isEqual(getProfile.getOccupation(), "Retired")) {
-				occupation = "6";
-			} else if (StringUtil.isEqual(getProfile.getOccupation(), "House Wife")) {
-				occupation = "7";
-			} else if (StringUtil.isEqual(getProfile.getOccupation(), "Student")) {
-				occupation = "8";
-			} else if (StringUtil.isEqual(getProfile.getOccupation(), "Others")) {
-				occupation = "99";
-			}
-			createDocuBuffer.append("<fhoccupation>"+occupation+"</fhoccupation>");
-			createDocuBuffer.append("<fhothtaxresident>01</fhothtaxresident>");
-			createDocuBuffer.append("<fhfatcadeclaration>Y</fhfatcadeclaration>");
-			createDocuBuffer.append("<fhpastregulatryactn>N</fhpastregulatryactn>");
-			createDocuBuffer.append("<fheducatnquali>Not Provided</fheducatnquali>");
-			createDocuBuffer.append(" <fhbirthcountry>India</fhbirthcountry>");
-			createDocuBuffer.append("<fhsignature>0x49492A00B8000000F9955F9DBE44D1077389061327D922154FE46A08F134A16C12F552EB74D2C4D130FE6793D093F5343CBAC275E932E69D7A68D10B0F3682408BFFD020420810950D6D0FD1EEC8BD4D6BFF509DE3BAFD9DD7EABDF17AB0CA7045F9A10D91FF492DFD7F9E5F88B0EBB60DB4BD7</fhsignature>");
-			if(model!=null) {
-			createDocuBuffer.append("<fhapplnamebank>"+model.getBank()+"</fhapplnamebank>");
-			createDocuBuffer.append(" <fhapplnameitd>"+getProfile.getApplicantName()+"</fhapplnameitd>");
-			createDocuBuffer.append("<fhapplnamekyc>"+getProfile.getApplicantName()+"</fhapplnamekyc>");
-			createDocuBuffer.append("<fhkycmode></fhkycmode>");
-			createDocuBuffer.append("<fhkycdate></fhkycdate>");
-	        createDocuBuffer.append("</clientdetails>");
-	        createDocuBuffer.append("<clientcontactdetails>");
-	        createDocuBuffer.append("<fhmobilenumber>"+userEntity.get().getMobileNo()+"</fhmobilenumber>");
-	        createDocuBuffer.append("<fhfamilyflagmobile>Y</fhfamilyflagmobile>");
-	        createDocuBuffer.append("<fhemailid>"+userEntity.get().getEmailId()+"</fhemailid>");
-	        createDocuBuffer.append("<fhfamilyflagemailid>Y</fhfamilyflagemailid>");
-	        String PerAddress1=(getAddress.getIsKra()==1?getAddress.getKraPerAddress1():getAddress.getAddress1());
-			String PerAddress2=(getAddress.getIsKra()==1?getAddress.getKraPerAddress2():getAddress.getAddress2());
-			String PerAddress3=(getAddress.getIsKra()==1?getAddress.getKraPerAddress3():getAddress.getAddress2());
-			String State=(getAddress.getIsKra()==1?getAddress.getKraPerState():getAddress.getState());
-			String City=(getAddress.getIsKra()==1?getAddress.getKraPerCity():getAddress.getLandmark());
-			String dist=(getAddress.getIsKra()==1?getAddress.getKraPerCity():getAddress.getDistrict());
-			String Pincode=(getAddress.getIsKra()==1?Integer.toString(getAddress.getKraPerPin()):getAddress.getPincode().toString());
-			String CurAddress1=(getAddress.getIsKra()==1?responseCkyc.getCorresLine1():responseCkyc.getPermLine1());
-			String CurAddress2=(getAddress.getIsKra()==1?responseCkyc.getCorresLine2():responseCkyc.getPermLine2());
-			String CurAddress3=(getAddress.getIsKra()==1?responseCkyc.getCorresLine3():responseCkyc.getPermLine3());
-			String CurState=(getAddress.getIsKra()==1?responseCkyc.getCorresState():responseCkyc.getPermState());
-			String CurCity=(getAddress.getIsKra()==1?responseCkyc.getCorresDist():responseCkyc.getPermDist());
-			String Curdist=(getAddress.getIsKra()==1?responseCkyc.getCorresDist():responseCkyc.getPermDist());
-			String CurPincode=(getAddress.getIsKra()==1?responseCkyc.getCorresPin():responseCkyc.getPermPin());
-	        createDocuBuffer.append("<fhcorraddress>");
-	        createDocuBuffer.append("<fhcorraddline1> "+CurAddress1+"</fhcorraddline1>");
-			createDocuBuffer.append("<fhcorraddline2>"+CurAddress2+"</fhcorraddline2>");
-			createDocuBuffer.append("<fhcorraddline3>"+CurAddress3+"</fhcorraddline3>");
-			createDocuBuffer.append("<fhcorraddcity>"+CurCity+"</fhcorraddcity>");
-			createDocuBuffer.append(" <fhcorraddpincode>"+CurPincode+"</fhcorraddpincode>");
-			createDocuBuffer.append("<fhcorradddistrict>"+Curdist+"</fhcorradddistrict>");
-			createDocuBuffer.append(" <fhcorraddstate>"+CurState+"</fhcorraddstate>");
-			createDocuBuffer.append("<fhcorraddcountry>IN</fhcorraddcountry>");
-			createDocuBuffer.append("<fhcorraddprooftype>26</fhcorraddprooftype>");
-	        createDocuBuffer.append("<fhcorraddidvaliddate/>");
-			createDocuBuffer.append("<fhcorraddtype>01</fhcorraddtype>");
-			createDocuBuffer.append("</fhcorraddress>");
-			createDocuBuffer.append("<fhcorrsameaspermanent>Y</fhcorrsameaspermanent>");
-			createDocuBuffer.append("<fhpermaddress>");
-			 createDocuBuffer.append("<fhpermaddline1>"+PerAddress1+"</fhpermaddline1>");
-	         createDocuBuffer.append("<fhpermaddline2>"+PerAddress2+"</fhpermaddline2>");
-	         createDocuBuffer.append("<fhpermaddline3>"+PerAddress3+"</fhpermaddline3>");
-	         createDocuBuffer.append("<fhpermaddcity>"+City+"</fhpermaddcity>");
-	         createDocuBuffer.append("<fhpermaddpincode>"+Pincode+"</fhpermaddpincode>");
-	         createDocuBuffer.append("<fhpermadddistrict>"+dist+"</fhpermadddistrict>");
-	         createDocuBuffer.append("<fhpermaddstate>"+State+"</fhpermaddstate>");
-	         createDocuBuffer.append("<fhpermaddcountry/>");
-	         createDocuBuffer.append("<fhpermaddprooftype/>");
-	         createDocuBuffer.append("<fhpermaddidnumber/>");
-	         createDocuBuffer.append("<fhpermaddidvaliddate/>");
-	         createDocuBuffer.append("<fhpermaddtype/>");
-	         createDocuBuffer.append("</fhpermaddress>");
-	         createDocuBuffer.append("</clientcontactdetails>");
-	         createDocuBuffer.append("<ipv>");
-			 createDocuBuffer.append("<fhipvemplname/>");
-			 createDocuBuffer.append("<fhipvempldesig/>");
-			 createDocuBuffer.append("<fhipvemplbranch/>");
-			 createDocuBuffer.append("<fhipvemplcode/>");
-			 createDocuBuffer.append("<fhipvorganiname/>");
-			 createDocuBuffer.append("<firsipvorganicode/>");
-			 createDocuBuffer.append("</ipv>");
-			 createDocuBuffer.append("<fhlatitude>"+ivr.getLatitude()+"</fhlatitude>");
-			 createDocuBuffer.append("<fhlongitude>"+ivr.getLatitude()+"</fhlongitude>");
-			 createDocuBuffer.append("<fhplacelatlong/>");
-			createDocuBuffer.append("</firstholder>");
-			createDocuBuffer.append("<financial>");
-			
-			String annual_income = "";
-			if (StringUtil.isEqual(getProfile.getAnnualIncome(), "Below 1 lakh")) {
-				annual_income = "1";
-			} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "1-5 lakhs")) {
-				annual_income = "2";
-			} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "5-10 lakhs")) {
-				annual_income = "3";
-			} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "10-25 lakhs")) {
-				annual_income = "4";
-			} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "> 25 lakhs")) {
-				annual_income = "5";
-			}
-			 createDocuBuffer.append("<incomornetowrth>1</incomornetowrth>");
-	         createDocuBuffer.append("<annualincomrang>"+annual_income+"</annualincomrang>");
-	         createDocuBuffer.append("<dateannualincome>07-03-202200:00:00.00</dateannualincome>");
-	         createDocuBuffer.append("<networth>"+getProfile.getNetWorth()+"</networth>");
-	         createDocuBuffer.append("<networthdate>"+getProfile.getNetWorthDate()+"</networthdate>");
-	         createDocuBuffer.append("<bankdetails>");
-	         createDocuBuffer.append("<bankaccountno>"+getBankDetails.getAccountNo()+"</bankaccountno>");
-	         createDocuBuffer.append("<bankname>"+model.getBank()+"</bankname>");
-	         createDocuBuffer.append("<bankaccounttype>01</bankaccounttype>");
-	         createDocuBuffer.append("<branchcode>"+model.getBankcode()+"</branchcode>");
-	        createDocuBuffer.append("<ifsc>"+getBankDetails.getIfsc()+"</ifsc>");
-	        createDocuBuffer.append("<micr>"+getBankDetails.getMicr()+"</micr>");
-	        createDocuBuffer.append("<bankaddress>"+getBankDetails.getAddress()+"</bankaddress>");
-			createDocuBuffer.append("</bankdetails>");
-			createDocuBuffer.append("<incomesource>self</incomesource>");
-			createDocuBuffer.append("</financial>");
-			createDocuBuffer.append("<accountdetails>");
-		    createDocuBuffer.append("<modecontractnote>Electronic</modecontractnote>");
-		    createDocuBuffer.append("<runningaccountfreq>Quarterly</runningaccountfreq>");
-		    createDocuBuffer.append("<tradingeperience>"+(getProfile.getTradingExperience()=="Nil"?"N":"Y")+"</tradingeperience>");
-		    createDocuBuffer.append("<brokerageoption>Basic</brokerageoption>");
-		    createDocuBuffer.append("<internettrading>Y</internettrading>");
-		    createDocuBuffer.append("<introducer>N</introducer>");
-		    createDocuBuffer.append("<paymentscheme>NA</paymentscheme>");
-		    createDocuBuffer.append("<tariffplan>NA</tariffplan>");
-		    createDocuBuffer.append("<suborotherborker>N</suborotherborker>");
-		    createDocuBuffer.append("<accountstatus>Y</accountstatus>");
-		    createDocuBuffer.append("<poafund>N</poafund>");
-		    createDocuBuffer.append("<poasecurities>N</poasecurities>");
-		    createDocuBuffer.append("<poafunddate/>");
-		    createDocuBuffer.append("<poasecuritiesdate/>");
-		    createDocuBuffer.append("<nsetrading>");
-	        createDocuBuffer.append("<nseucc>G900000005</nseucc>");
-	        createDocuBuffer.append("<nsecash>Y</nsecash>");
-	        createDocuBuffer.append("<nsefo>Y</nsefo>");
-	        createDocuBuffer.append("<nsecurrency>Y</nsecurrency>");
-	        createDocuBuffer.append("<nsecommodity>N</nsecommodity>");
-	        createDocuBuffer.append("<nsemfss>N</nsemfss>");
-	        createDocuBuffer.append("<nseclientcategory>I</nseclientcategory>");
-	        createDocuBuffer.append("<nseclientstatus>A</nseclientstatus>");
-			createDocuBuffer.append("</nsetrading>");
-			createDocuBuffer.append("<bsetrading>");
-	        createDocuBuffer.append("<bseucc>G900000005</bseucc>");
-	        createDocuBuffer.append("<bsecash>Y</bsecash>");
-	        createDocuBuffer.append("<bsefo>Y</bsefo>");
-	        createDocuBuffer.append("<bsecurrency>Y</bsecurrency>");
-	        createDocuBuffer.append("<bsecommodity>N</bsecommodity>");
-	        createDocuBuffer.append("<bsestarmf>N</bsestarmf>");
-	        createDocuBuffer.append("<bseclientcategory>I</bseclientcategory>");
-	        createDocuBuffer.append("<bseclientstatus>CL</bseclientstatus>");
-	        createDocuBuffer.append("<bsesmsemailalert>Y</bsesmsemailalert>");
-	        createDocuBuffer.append("</bsetrading>");
-	        createDocuBuffer.append("<mcxtrading>");
-	        createDocuBuffer.append("<mcxclientcategory>02</mcxclientcategory>");
-	        createDocuBuffer.append("<mcxclientstatus>1</mcxclientstatus>");
-	        createDocuBuffer.append("<mcxclienttype>1</mcxclienttype>");
-	        createDocuBuffer.append("</mcxtrading>");
-	        createDocuBuffer.append("<nsdldemat>");
-	        createDocuBuffer.append("<nsdlclienttype>1</nsdlclienttype>");
-	        createDocuBuffer.append("<nsdlclientsubtype>01</nsdlclientsubtype>");
-	        createDocuBuffer.append("<nsdldpid>IN302164</nsdldpid>");
-	        createDocuBuffer.append("<nsdldpname>PhillipCapital (India) Pvt. Ltd</nsdldpname>");
-	        createDocuBuffer.append("<dematclientid>60000078</dematclientid>");
-	        createDocuBuffer.append("<nonomination/>");
-	        createDocuBuffer.append("<nonbsda>N</nonbsda>");
-	        createDocuBuffer.append("<siforcredit>Y</siforcredit>");
-	        createDocuBuffer.append("<estatement/>");
-	        createDocuBuffer.append("<eCommIssuer/>");
-	        createDocuBuffer.append("<smsalert>Y</smsalert>");
-	        createDocuBuffer.append("<disbookletfacility>N</disbookletfacility>");
-	        createDocuBuffer.append("<moderightsobligatn>Electronic</moderightsobligatn>");
-	        createDocuBuffer.append("<poaoperated>N</poaoperated>");
-	        createDocuBuffer.append("</nsdldemat>");
-	        createDocuBuffer.append("<cdsldemat>");
-	        createDocuBuffer.append("<cdslclienttype/>");
-	        createDocuBuffer.append("<cdslclientsubtype/>");
-	        createDocuBuffer.append("<dematclientid/>");
-	        createDocuBuffer.append("<cdsldpname/>");
-	        createDocuBuffer.append("<nonomination/>");
-	        createDocuBuffer.append("<nonbsda/>");
-	        createDocuBuffer.append("<siforcredit/>");
-	        createDocuBuffer.append("<estatement/>");
-	        createDocuBuffer.append("<eCommIssuer/>");
-	        createDocuBuffer.append("<smsalert/>");
-	        createDocuBuffer.append("<disbookletfacility/>");
-	        createDocuBuffer.append("<moderightsobligatn/>");
-	        createDocuBuffer.append("<poaoperated/>");
-	        createDocuBuffer.append("</cdsldemat>");
-	        createDocuBuffer.append("</accountdetails>");
-	        createDocuBuffer.append("<document>");
-		    createDocuBuffer.append("<fhpancopy></fhpancopy>");
-		    createDocuBuffer.append("<fhsignature></fhsignature>");
-		    createDocuBuffer.append("<fhphoto></fhphoto>");
-		    createDocuBuffer.append("<cheque/>");
-		    createDocuBuffer.append("<cancelcheque></cancelcheque>");
-		    createDocuBuffer.append("<fhprofcorradd/>");
-		    createDocuBuffer.append("<fhprofpermadd/>");
-		    createDocuBuffer.append("<bankstmnt></bankstmnt>");
-		    createDocuBuffer.append("<fhaadharxml></fhaadharxml>");
-		    createDocuBuffer.append("<nomineform/>");
-		    createDocuBuffer.append("<otherdoc></otherdoc>");
-		    createDocuBuffer.append("</document>");
-		    createDocuBuffer.append("<paymentdetails>");
-		    createDocuBuffer.append("<pgrefno></pgrefno>");
-		    createDocuBuffer.append("<amountpaid>"+paymentEntity.getAmountPaid()+"</amountpaid>");
-		    createDocuBuffer.append("<dateofpayment></dateofpayment>");
-			createDocuBuffer.append("</paymentdetails>");
-			createDocuBuffer.append("</ClientRecord>");
-			createDocuBuffer.append("</FileDetail>");
-			createDocuBuffer.append("</root>");
-			xmlData = createDocuBuffer.toString();
-			}	
-	 }
-			return xmlData;}}
+	        	JsonObject jsonObject = new JsonObject();
+	            jsonObject.addProperty("key",props.getBackofficeKey());
+	            jsonObject.addProperty("cUcc", userEntity.get().getUccCodePrefix()+userEntity.get().getUccCodeSuffix());
+	            jsonObject.addProperty("cClientName", userEntity.get().getUserName());
+	            jsonObject.addProperty("cFatherNm",getProfile.getFatherName());
+	            jsonObject.addProperty("cMotherNm", getProfile.getMotherName());
+	            String dobString = userEntity.get().getDob();
+	            System.out.println("Original DOB: " + dobString);
+	            // Define the date format of the input string
+	            SimpleDateFormat inputFormat = new SimpleDateFormat("dd-MM-yyyy");
+	            Date dobDate = inputFormat.parse(dobString);
+	            // Define the desired date format
+	            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+	            String formattedDob = outputFormat.format(dobDate);
+
+	            System.out.println("Formatted DOB: " + formattedDob);
+	            // Format the Date to the desired output format;
+	            jsonObject.addProperty("dBirth_Date",formattedDob);
+	            String Gender=getProfile.getGender();
+	            if(Gender!=null) {
+	            	if (Gender.equalsIgnoreCase("Male")) {
+	            		Gender="M";
+	            	}else if(Gender.equalsIgnoreCase("Female")) {
+	            		Gender="F";
+	            	}else {
+	            		Gender="N";
+	            	}
+	            }
+	            jsonObject.addProperty("cGender", Gender);
+	            String marriedStatus=getProfile.getMaritalStatus();
+	            String cMaritalStatus=null;
+	            if(marriedStatus!=null) {
+	            	if(marriedStatus.equalsIgnoreCase("Single")){
+	            		cMaritalStatus="01";
+	            	}else if (marriedStatus.equalsIgnoreCase("Married")){
+	            		cMaritalStatus="02";
+	            	}else {
+	            		cMaritalStatus="03";
+	            	}
+	            }
+	            jsonObject.addProperty("cMaritalStatus", cMaritalStatus);
+	            jsonObject.addProperty("dMarriageAniv", "");
+	            jsonObject.addProperty("cNationality", "01");
+	            jsonObject.addProperty("cResIndStatus","Resident Individual");
+	            
+	            String occupation = "";
+				if (StringUtil.isEqual(getProfile.getOccupation(), "Private Sectorr")) {
+					occupation = "Employed";
+				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Public Sector")) {
+					occupation = "Employed";				
+				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Business")) {
+					occupation = "Business";
+				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Professional")) {
+					occupation = "Professional";
+				} else if (StringUtil.isEqual(getProfile.getOccupation(), "House Wife")) {
+					occupation = "House Wife";
+				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Student")) {
+					occupation = "Student";
+				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Others")) {
+					occupation = "Others";
+				}	   
+				
+				  String income  = "";
+				  if (StringUtil.isEqual(getProfile.getAnnualIncome(), "0-1 lakh")) {
+					  income = "01";
+					} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "1-5 lakhs")) {
+						income = "02";				
+					} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "5-10 lakhs")) {
+						income = "03";
+					} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "10-20 lakhs")) {
+						income = "04";
+					} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "More than 20 lakhs")) {
+						income = "05";
+					}
+	            jsonObject.addProperty("cOccupation",occupation);
+	            jsonObject.addProperty("cAnnualIncome ",income);
+	            jsonObject.addProperty("ClRiskProfile", "");
+	            jsonObject.addProperty("cBranchID", "HO");
+	            jsonObject.addProperty("cPan_No", userEntity.get().getPanNumber());
+	            jsonObject.addProperty("cPassport", "");
+	            jsonObject.addProperty("dPPDate", "");
+	            jsonObject.addProperty("dPPExpDate", "");
+	            jsonObject.addProperty("cVoterId", "");
+	            jsonObject.addProperty("cRationId", "");
+	            jsonObject.addProperty("cDriveLicense", "");
+	            
+	            
+	            
+	            jsonObject.addProperty("dDLDate", "");
+	            jsonObject.addProperty("dDLExpDate ", "");
+	            jsonObject.addProperty("cAadhaar", getAddress.getAadharNo()!=null?getAddress.getAadharNo():"");
+	            jsonObject.addProperty("cPhotoIdPrf", "");
+	            String kraAddressProof = null; // Initialize the variable to null
+	            kraAddressProof = getAddress.getKraaddressproof(); // Get the value from getAddress.getKraaddressproof()
+	            // Check if kraAddressProof is equal to "AADHAAR" (ignoring case)
+	            if(kraAddressProof!=null) {
+	            	System.out.println("THE RUNNNNNNNN");
+	            if (kraAddressProof.equalsIgnoreCase("AADHAAR")) {
+	                kraAddressProof = "ADHAAR"; // Set kraAddressProof to "ADHAAR"
+	            } else {
+	                kraAddressProof = getAddress.getKraaddressproof(); // Assign the original value back
+	            }}
+
+	            // Add a property "cAddPrf" to jsonObject with kraAddressProof as the value (or "ADHAAR" if it's null)
+	            jsonObject.addProperty("cAddPrf", kraAddressProof != null ? kraAddressProof : "ADHAAR");
+
+	            
+	            String PerAddress1=(getAddress.getIsKra()==1?getAddress.getKraPerAddress1():getAddress.getAddress1());
+				String PerAddress2=(getAddress.getIsKra()==1?getAddress.getKraPerAddress2():getAddress.getAddress2());
+				String PerAddress3=(getAddress.getIsKra()==1?getAddress.getKraPerAddress3():getAddress.getAddress2());
+				String State=(getAddress.getIsKra()==1?getAddress.getKraPerState():getAddress.getState());
+				String City=(getAddress.getIsKra()==1?getAddress.getKraPerCity():getAddress.getLandmark());
+				String dist=(getAddress.getIsKra()==1?getAddress.getKraPerCity():getAddress.getDistrict());
+				String Pincode=(getAddress.getIsKra()==1?Integer.toString(getAddress.getKraPerPin()):getAddress.getPincode().toString());
+	            //address
+				String kraproof="";
+				KraKeyValueEntity kraKeyValueEntityproof=null;
+				if(getAddress.getIsKra()==1) {
+					kraproof=getAddress.getKraaddressproof();
+					kraKeyValueEntityproof=kraKeyValueRepository.findByMasterIdAndMasterNameAndKraValue("PROOF OF ADDRESS","9", kraproof);
+				}
+				 KraKeyValueEntity kraKeyValueEntityState=kraKeyValueRepository.findByMasterIdAndMasterNameAndKraValue("STATE","1", State);
+	            jsonObject.addProperty("cAdd1", PerAddress1);
+	            jsonObject.addProperty("cAdd2", PerAddress2);
+	            jsonObject.addProperty("cAdd3",PerAddress3);
+	            jsonObject.addProperty("cCity", City);
+	            jsonObject.addProperty("cPin", Pincode);
+	            jsonObject.addProperty("cStateCd", kraKeyValueEntityState!=null?kraKeyValueEntityState.getKraKey():"");
+	            jsonObject.addProperty("cCountry", "India");
+	            jsonObject.addProperty("cPhone", "");
+	            jsonObject.addProperty("cFax", "");
+	            //Residential Address
+	            
+	            jsonObject.addProperty("cResAdd1", PerAddress1);
+	            jsonObject.addProperty("cResAdd2", PerAddress2);
+	            jsonObject.addProperty("cResAdd3", PerAddress3);
+	            jsonObject.addProperty("cResCity",City);
+	            jsonObject.addProperty("cResPin",  Pincode);
+	            jsonObject.addProperty("cResStateCd",kraKeyValueEntityState!=null?kraKeyValueEntityState.getKraKey():"");
+	            
+	            jsonObject.addProperty("cResCountry", "India");
+	            jsonObject.addProperty("cResPhone", "");
+	            jsonObject.addProperty("cResFax", "");
+	            //Communication
+	            jsonObject.addProperty("cEmail", userEntity.get().getEmailId());
+	            jsonObject.addProperty("cMobile", userEntity.get().getMobileNo());
+	            jsonObject.addProperty("FmlyEmailFlag", 0);
+	            jsonObject.addProperty("FmlyMobileFlag", 0);
+	            //KRA
+	            jsonObject.addProperty("cKraApplDt", "");
+	            jsonObject.addProperty("cKraOccupation", occupation);
+	            jsonObject.addProperty("cKraOccupationDtlOth", "");
+	            jsonObject.addProperty("cKraAnnualInc", income);
+	            jsonObject.addProperty("cKraAnnualIncDt", "");
+	            
+	            jsonObject.addProperty("cKraPEP", "");
+	            jsonObject.addProperty("cKraCorrAddPrf",kraKeyValueEntityproof!=null?kraKeyValueEntityproof.getKraKey():"");
+	            jsonObject.addProperty("cKraCorrAddPrfId", getAddress.getKraproofIdNumber()!=null?getAddress.getKraproofIdNumber():"");
+	            jsonObject.addProperty("cKraCorrAddPrfDt", "");
+	            jsonObject.addProperty("cKraPermAddPrf", kraKeyValueEntityproof!=null?kraKeyValueEntityproof.getKraKey():"");
+	            
+	            jsonObject.addProperty("cKraPermAddPrfId",  getAddress.getKraproofIdNumber()!=null?getAddress.getKraproofIdNumber():"");
+	            jsonObject.addProperty("cKraPermAddPrfDt", "");
+	            jsonObject.addProperty("cKraPermCorrSame", "N");
+	           
+	            jsonObject.addProperty("cKraCorrAddState",kraKeyValueEntityState!=null?kraKeyValueEntityState.getKraKey():"");
+	            jsonObject.addProperty("cKraPermAddState",kraKeyValueEntityState!=null?kraKeyValueEntityState.getKraKey():"");
+	            jsonObject.addProperty("cKraCorrAddCntry", "01");
+	            jsonObject.addProperty("cKraPermAddCntry", "01");
+	            jsonObject.addProperty("cKraIdProof", kraKeyValueEntityproof!=null?kraKeyValueEntityproof.getKraKey():"");
+	            String getKraCity=callBCCity(City);
+	            System.out.println("the getKraCity"+getKraCity);
+	            jsonObject.addProperty("cKraStateCity","");
+	            jsonObject.addProperty("cKraIpvDt","");
+	            
+	            jsonObject.addProperty("cKraIpvDesig", "");
+	            jsonObject.addProperty("cKraIpvName", "");
+	            jsonObject.addProperty("cKraIpvOrg", "");
+	            jsonObject.addProperty("cKraIdProofOth", "");
+	            jsonObject.addProperty("KRACompStatus", "");
+	            
+	            ReferralEntity referralEntity=referralRepository.findByMobileNo(userEntity.get().getMobileNo());
+	            //Introducer Details
+	            jsonObject.addProperty("cIntroClId",referralEntity!=null? referralEntity.getReferralBy():"");
+	            jsonObject.addProperty("cIntroName", referralEntity!=null?  referralEntity.getRefByName():"");
+	            jsonObject.addProperty("cIntroCtgry", "");
+	            jsonObject.addProperty("cIntroCatDscr", "");
+	            jsonObject.addProperty("cIntroAdd1", "");
+	            
+	            jsonObject.addProperty("cIntroAdd2", "");
+	            jsonObject.addProperty("cIntroAdd3", "");
+	            jsonObject.addProperty("cIntroCity", "");
+	            jsonObject.addProperty("cIntroPin", "");
+	            jsonObject.addProperty("cIntroCntry", "");
+	            jsonObject.addProperty("cIntroPhone", "");
+	            jsonObject.addProperty("cIntroFather", "");
+	            jsonObject.addProperty("cIntroRel", "");
+	            jsonObject.addProperty("cIntroIdPrf", "");
+	            jsonObject.addProperty("cIntroId", referralEntity!=null? referralEntity.getReferralBy():"");
+	            jsonObject.addProperty("cIntroIdExp","");
+	            
+	            //Contact Person 1
+	            jsonObject.addProperty("cContactPerson","");
+	            jsonObject.addProperty("cCpDesignation", "");
+	            jsonObject.addProperty("cCpAddress","");
+	            jsonObject.addProperty("cCpPhone","");
+	            jsonObject.addProperty("cCpCity", "");
+	            jsonObject.addProperty("cCpPin", "");
+	            jsonObject.addProperty("cCpState","");
+	            jsonObject.addProperty("cCpCountry","");
+	            //Primary Bank Details
+	            jsonObject.addProperty("cIfsc",getBankDetails.getIfsc()!=null? getBankDetails.getIfsc():"");
+	            jsonObject.addProperty("cMicr",getBankDetails.getMicr());
+	            jsonObject.addProperty("cAcType", "Savings");
+	            jsonObject.addProperty("cAcNo", getBankDetails.getAccountNo());
+	            jsonObject.addProperty("cBankClientName", userEntity.get().getUserName());
+	            
+	            //Secondary Bank Details
+	            jsonObject.addProperty("cSecIfsc", "");
+	            jsonObject.addProperty("cSecMicr", "");
+	            jsonObject.addProperty("cSecAcType", "");
+	            jsonObject.addProperty("cSecAcNo", "");
+	            jsonObject.addProperty("cSecBankClientName", "");
+	            jsonObject.addProperty("PayMode", "");
+	            jsonObject.addProperty("cAutoFundPo", "");
+	            jsonObject.addProperty("cClientType", "");
+	            jsonObject.addProperty("cDealMode", "");
+	            jsonObject.addProperty("cRegFrmRecvd", "");
+	            jsonObject.addProperty("cIpvFlag",1);
+	            
+	            SegmentEntity SegmentEntity=segmentRepository.findByapplicationId(applicationId);
+	            //segment 
+	            jsonObject.addProperty("cREG_NSE",SegmentEntity!=null? SegmentEntity.getEquCash():0);
+	            jsonObject.addProperty("cREG_NFO",SegmentEntity!=null? SegmentEntity.getEd():0);
+	            jsonObject.addProperty("cREG_BSE", "");
+	            
+	            jsonObject.addProperty("cREG_BFO","");
+	            jsonObject.addProperty("cREG_CSE", "");
+	            jsonObject.addProperty("cREG_DSE", "");
+	            jsonObject.addProperty("cREG_NCDEX", "");
+	            jsonObject.addProperty("cREG_MCX", SegmentEntity!=null? SegmentEntity.getComm():0);
+	            jsonObject.addProperty("cREG_MF", "");
+	            jsonObject.addProperty("cREG_NBFC", "");
+	            jsonObject.addProperty("cREG_DGCX", "");
+	            jsonObject.addProperty("cREG_NMCEIL","");
+	            jsonObject.addProperty("cREG_CNFO", SegmentEntity!=null? SegmentEntity.getCd():0);
+	            jsonObject.addProperty("cREG_CMFO", "");
+	            
+	            jsonObject.addProperty("cREG_CBFO", "");
+	            jsonObject.addProperty("cREG_PMS", "");
+	            jsonObject.addProperty("cREG_ICFO", "");
+	            jsonObject.addProperty("cREG_NMFS", "");
+	            jsonObject.addProperty("cREG_NSFO", "");
+	            jsonObject.addProperty("cREG_KCFO", "");
+	            jsonObject.addProperty("cREG_USFO", "");
+	            jsonObject.addProperty("cREG_CSENSE", "");
+	            jsonObject.addProperty("cREG_CSENFO", "");
+	            jsonObject.addProperty("cREG_MXEQ", "");
+	            jsonObject.addProperty("cREG_MXFO", "");
+	            
+	            
+	            jsonObject.addProperty("cREG_UCX", "");
+	            jsonObject.addProperty("cREG_NSEDS","");
+	            jsonObject.addProperty("cREG_BMFS", "");
+	            jsonObject.addProperty("cREG_NSLB", "");
+	            jsonObject.addProperty("cREG_NSPT","");
+	            jsonObject.addProperty("IBTActive", "");
+	            jsonObject.addProperty("FATCAReceivedDate", "");
+	            jsonObject.addProperty("cHoldDlvry","");
+	            //dp details
+	            
+	            jsonObject.addProperty("cDpId", "");
+	            jsonObject.addProperty("cBenAcNum","");
+	            //nominee opt out 
+	            jsonObject.addProperty("NomOptOutDt", "");
+	            
+	            //brokerage
+	            
+	            jsonObject.addProperty("cBrkgBasketNSE",  "");
+	            jsonObject.addProperty("cBrkgBasketBSE",  "");
+	            jsonObject.addProperty("cBrkgBasketFO",  "");
+	            jsonObject.addProperty("cBrkgBasketCDS",  "");
+	            jsonObject.addProperty("cBrkgBasketCOMM",  "");
+	            jsonObject.addProperty("cBrkgBasketBSEFO",  "");
+	            jsonObject.addProperty("cBrkgBasketBSECDS",  "");
+	            jsonObject.addProperty("dBrkgEffectDate",  "");
+	            jsonObject.addProperty("nDelCMBrkg",  "");
+	            jsonObject.addProperty("nDelCMBrkgMin", "");
+	            jsonObject.addProperty("nSqCMBrkg",  "");
+	            
+	            
+	            jsonObject.addProperty("nSqCMBrkgMin", "");
+	            jsonObject.addProperty("nFutBrkg",  "");
+	            jsonObject.addProperty("nFutBrkgMin",  "");
+	            jsonObject.addProperty("nOptBrkg",  ""); 
+	            //running acc 
+	          
+	            jsonObject.addProperty("cRunAcSegment","Securities");
+	            jsonObject.addProperty("dRunAcRcvdDt",  "");
+	            jsonObject.addProperty("dRunAcRvkdDt", "");
+	            jsonObject.addProperty("nSettleType",  "");
+	            jsonObject.addProperty("Retainable", "");
+	            
+	            //comm
+	            jsonObject.addProperty("dRunAcRcvdDtCom", "");
+	            jsonObject.addProperty("dRunAcRvkdDtCom", "");
+	            jsonObject.addProperty("nSettleTypeCom",  "");
+	            jsonObject.addProperty("RetainableCom",  "");
+	            
+	            
+	            
+	            jsonObject.addProperty("cGroupCd",  "");
+	            jsonObject.addProperty("dAPEffectDate", "");
+	            jsonObject.addProperty("cAPCd",  "");
+	            jsonObject.addProperty("dRMEffectDate", "");
+	            
+	            jsonObject.addProperty("cRMCd",  "");
+	            jsonObject.addProperty("dDealerEffectDate",  "");
+	            jsonObject.addProperty("cDealerCd",  "");
+	            jsonObject.addProperty("dSREffectDate",  "");
+	            
+	            jsonObject.addProperty("cClientWithOthTM",  "");
+	            jsonObject.addProperty("cSRCd",  "");
+	         // Convert the JSON object to a string
+	             jsonData = jsonObject.toString();
+	        }
+		return jsonData;
+	}
+
+	public String callBCCity(String city) {
+	    OkHttpClient client = new OkHttpClient();
+
+	    // Define the URL
+	    String apiUrl = "https://bo.skybroking.com/shrdbms/dotnet/api/stansoft/getKRAStateCityList";
+
+	    // Create the JSON request body
+	    String json = "{\"key\": \"ezM0OTM4Q0Y1LUIyNUItNDhFMi1CNEU2LTRDQkY5MjhGQjE2M30=\"";
+
+	    if (city != null && !city.isEmpty()) {
+	        json += ", \"cSearch\": \"" + city + "\"";
+	    }
+
+	    json += "}";
+
+	    // Create a request
+	    RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), json);
+	    Request request = new Request.Builder()
+	            .url(apiUrl)
+	            .post(requestBody) // Use POST method as required
+	            .build();
+
+	    try (Response response = client.newCall(request).execute()) {
+	        if (response.isSuccessful()) {
+	            String responseBody = response.body().string();
+	           // System.out.println("the " + responseBody);
+	            return responseBody;
+	        } else {
+	            // Handle the error response here (e.g., log or throw an exception)
+	            return "Error: " + response.code();
+	        }
+	    } catch (IOException e) {
+	        // Handle network or other IO exceptions here
+	        return "Error: " + e.getMessage();
+	    }
+	}
+}

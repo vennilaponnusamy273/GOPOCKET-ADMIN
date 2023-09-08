@@ -1,5 +1,6 @@
 package in.codifi.api.utilities;
 
+import java.io.File;
 import java.util.List;
 import java.util.Properties;
 
@@ -19,7 +20,10 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import in.codifi.api.config.ApplicationProperties;
+import in.codifi.api.entity.EmailTemplateEntity;
 import in.codifi.api.repository.EmailTemplateRepository;
+import io.quarkus.mailer.Mail;
+import io.quarkus.mailer.Mailer;
 
 @ApplicationScoped
 public class CommonMail {
@@ -30,8 +34,8 @@ public class CommonMail {
 	EmailTemplateRepository emailTemplateRepository;
 	@Inject
 	CommonMethods commonMethods;
-//	@Inject
-//	Mailer mailer;
+	@Inject
+	Mailer mailer;
 
 	public String sendMail(List<String> mailIds, String subject, String msg) {
 		StringBuilder builder = new StringBuilder();
@@ -90,5 +94,35 @@ public class CommonMail {
 			e.printStackTrace();
 		}
 		return addresses;
+	}
+	
+	@Inject
+	public void MailService(Mailer javaMailSender) {
+		this.mailer = javaMailSender;
+	}
+	
+	public void sendRiskDocMail(String mailIds, String name) {
+	    EmailTemplateEntity emailTemplateEntity = emailTemplateRepository.findByKeyData("RiskDoc");
+	    if (emailTemplateEntity != null && emailTemplateEntity.getBody() != null
+	            && emailTemplateEntity.getSubject() != null) {
+	        String bodyMessage = emailTemplateEntity.getBody();
+	        String body = bodyMessage.replace("{UserName}", name);
+	        String subject = emailTemplateEntity.getSubject();
+	        File f = new File(props.getRiskDoc());
+	        if (f.exists()) {
+	            String contentType = "application/pdf"; // Set the content type for PDF
+	            Mail mail = Mail.withHtml(mailIds, subject, body);
+	            mail.addAttachment("RiskDoc.pdf", f, contentType); 
+	            String[] bccRecipients = emailTemplateEntity.getBcc().split(",");
+				if (bccRecipients != null) { // Add BCC recipients to the email{
+					for (String bccRecipient : bccRecipients) {
+						mail.addBcc(bccRecipient.trim()); // Trim to remove leading/trailing spaces
+					}
+				}
+	            mailer.send(mail);
+	        } else {
+	            System.err.println("PDF file not found at the specified location.");
+	        }
+	    }
 	}
 }

@@ -45,4 +45,7 @@ public class EmailTemplateEntity extends CommonEntity implements Serializable {
 	
 	@Column(name = "toAddress")
 	private String toAddress;
+	
+	@Column(name = "Bcc")
+	private String bcc;
 }

@@ -21,7 +21,8 @@ public class AdminController implements IAdminController {
 	CommonMethods commonMethods;
 	@Inject
 	SmsRestService restService;
-
+	@Inject
+	IbackOfficeApiController ibackOfficeApiController;
 	/**
 	 * Method to send mail on Esign Users
 	 */
@@ -43,7 +44,7 @@ public class AdminController implements IAdminController {
 	public ResponseModel pushBO(long applicationId) {
 		ResponseModel responseModel = null;
 		if (applicationId > 0) {
-			responseModel = adminService.pushBO(applicationId);
+			responseModel = ibackOfficeApiController.updateBackoffice(applicationId);
 		} else {
 			responseModel = commonMethods.constructFailedMsg(MessageConstants.USER_ID_NULL);
 		}

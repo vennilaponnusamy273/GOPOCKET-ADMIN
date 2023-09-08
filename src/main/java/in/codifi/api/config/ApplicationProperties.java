@@ -52,4 +52,10 @@ public class ApplicationProperties {
 	@ConfigProperty(name = "appconfig.bitly.base.url")
 	String bitlyBaseUrl;
 	
+	@ConfigProperty(name = "appconfig.risk.doc.pdf")
+	String riskDoc;
+	@ConfigProperty(name = "appconfig.backoffice.api")
+	String backofficeApi;
+	@ConfigProperty(name = "appconfig.backoffice.key")
+	String backofficeKey;
 }
