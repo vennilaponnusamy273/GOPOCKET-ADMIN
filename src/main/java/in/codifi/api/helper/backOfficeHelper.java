@@ -111,9 +111,9 @@ public class backOfficeHelper {
 	            String cMaritalStatus=null;
 	            if(marriedStatus!=null) {
 	            	if(marriedStatus.equalsIgnoreCase("Single")){
-	            		cMaritalStatus="01";
-	            	}else if (marriedStatus.equalsIgnoreCase("Married")){
 	            		cMaritalStatus="02";
+	            	}else if (marriedStatus.equalsIgnoreCase("Married")){
+	            		cMaritalStatus="01";
 	            	}else {
 	            		cMaritalStatus="03";
 	            	}

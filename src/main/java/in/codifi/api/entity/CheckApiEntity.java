@@ -28,7 +28,7 @@ public class CheckApiEntity extends CommonEntity implements Serializable {
 	private Long applicationId;
 
 	@Column(name = "start_status")
-	private Long startStatus;
+	private Long startStatus=0L;
 
 	@Column(name = "form_code")
 	private String formCode;
