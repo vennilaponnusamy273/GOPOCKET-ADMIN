@@ -37,7 +37,7 @@ public class CommonMail {
 	@Inject
 	Mailer mailer;
 
-	public String sendMail(List<String> mailIds, String subject, String msg) {
+	public String sendMail(List<String> mailIds, String subject, String msg,List<String> bccMailIds) {
 		StringBuilder builder = new StringBuilder();
 		String success = EkycConstants.FAILED_MSG;
 		try {
@@ -64,6 +64,10 @@ public class CommonMail {
 				MimeMessage message = new MimeMessage(session);
 				message.setFrom(new InternetAddress(props.getMailFrom()));
 				message.addRecipients(Message.RecipientType.TO, getRecipients(mailIds));
+				// Add BCC recipients
+	            if (bccMailIds != null && !bccMailIds.isEmpty()) {
+	                message.addRecipients(Message.RecipientType.BCC, getRecipients(bccMailIds));
+	            }
 				message.setSubject(subject);
 				BodyPart messageBodyPart1 = new MimeBodyPart();
 				messageBodyPart1.setContent(builder.toString(), EkycConstants.CONSTANT_TEXT_HTML);

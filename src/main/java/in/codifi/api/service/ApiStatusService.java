@@ -1,6 +1,7 @@
 package in.codifi.api.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -186,7 +187,8 @@ public class ApiStatusService implements IApiStatusService {
 			String body = body_Message.replace("{stage}", stages).replace("{corrections}", reasons)
 					.replace("{UserName}", username);
 			String subject = emailTempentity.getSubject();
-			commonMail.sendMail(toAdd, subject, body);
+			List<String> bcc = Collections.singletonList("ekycsupport@gopocket.in");
+			commonMail.sendMail(toAdd, subject, body,bcc);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -1,6 +1,7 @@
 package in.codifi.api.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -157,7 +158,8 @@ public class ReferralService implements IReferralService {
 					String bodyMessage = emailTemplateEntity.getBody();
 					String body = bodyMessage.replace("{Link}", NotifyEntity.getUrl());
 					String subject = emailTemplateEntity.getSubject();
-					commonMail.sendMail(toAdd, subject, body);
+					List<String> bcc = Collections.singletonList("ekycsupport@gopocket.in");
+					commonMail.sendMail(toAdd, subject, body,bcc);
 				}
 			}
 			response.setStat(EkycConstants.SUCCESS_STATUS);

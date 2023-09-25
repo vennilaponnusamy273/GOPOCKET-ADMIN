@@ -159,7 +159,8 @@ public class CommonMethods {
 			body = body.replace("{StagesWithReasons}", stagesWithReasons);
 			body = body.replace("{ReSubmitLink}", "https://ekyc.gopocket.in");
 			List<String> toAdd = Collections.singletonList(emailId);
-			commonMail.sendMail(toAdd, subject, body);
+			List<String> bcc = Collections.singletonList("ekycsupport@gopocket.in");
+			commonMail.sendMail(toAdd, subject, body,bcc);
 		}
 	}
 
