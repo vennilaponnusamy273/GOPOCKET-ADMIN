@@ -275,11 +275,22 @@ public class backOfficeHelper {
 	            String getKraCity=callBCCity(City);
 	            System.out.println("the getKraCity"+getKraCity);
 	            jsonObject.addProperty("cKraStateCity","");
-	            jsonObject.addProperty("cKraIpvDt","");
-	            
-	            jsonObject.addProperty("cKraIpvDesig", "");
-	            jsonObject.addProperty("cKraIpvName", "");
-	            jsonObject.addProperty("cKraIpvOrg", "");
+	           // jsonObject.addProperty("cKraIpvDt","");
+	         // Assuming ivr.getCreatedOn() returns a Date object
+	            Date IpvDate=null;
+	            if (ivr.getAttachementUrl() != null) {
+	                IpvDate = ivr.getCreatedOn();
+	                // Format the date as IPV Date (yyyy-MM-dd)
+	                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	                String cKraIpvDt = sdf.format(IpvDate);
+	                // Add cKraIpvDt to jsonObject
+	                jsonObject.addProperty("cKraIpvDt", cKraIpvDt);
+	            } else {
+	                jsonObject.addProperty("cKraIpvDt", ""); // Set cKraIpvDt to an empty string
+	            }
+	            jsonObject.addProperty("cKraIpvDesig", "KYC EXECUTIVE");
+	            jsonObject.addProperty("cKraIpvName", "YOGESWARI R");
+	            jsonObject.addProperty("cKraIpvOrg", "SKY COMMODITIES");
 	            jsonObject.addProperty("cKraIdProofOth", "");
 	            jsonObject.addProperty("KRACompStatus", "");
 	            
