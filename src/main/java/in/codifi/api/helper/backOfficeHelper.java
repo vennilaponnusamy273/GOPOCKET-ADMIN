@@ -127,20 +127,28 @@ public class backOfficeHelper {
 	            jsonObject.addProperty("cResIndStatus","Resident Individual");
 	            
 	            String occupation = "";
-				if (StringUtil.isEqual(getProfile.getOccupation(), "Private Sectorr")) {
+	            String Kraoccupation = "";
+				if (StringUtil.isEqual(getProfile.getOccupation(), "Private Sector")) {
 					occupation = "Employed";
+					Kraoccupation="01";
 				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Public Sector")) {
-					occupation = "Employed";				
+					occupation = "Employed";	
+					Kraoccupation="02";
 				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Business")) {
 					occupation = "Business";
+					Kraoccupation="03";
 				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Professional")) {
 					occupation = "Professional";
+					Kraoccupation="04";
 				} else if (StringUtil.isEqual(getProfile.getOccupation(), "House Wife")) {
 					occupation = "House Wife";
+					Kraoccupation="07";
 				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Student")) {
 					occupation = "Student";
+					Kraoccupation="08";
 				} else if (StringUtil.isEqual(getProfile.getOccupation(), "Others")) {
 					occupation = "Others";
+					Kraoccupation="99";
 				}	   
 				
 				  String income  = "";
@@ -255,7 +263,7 @@ public class backOfficeHelper {
 	            jsonObject.addProperty("FmlyMobileFlag", 0);
 	            //KRA
 	            jsonObject.addProperty("cKraApplDt", "");
-	            jsonObject.addProperty("cKraOccupation", occupation);
+	            jsonObject.addProperty("cKraOccupation", Kraoccupation);
 	            jsonObject.addProperty("cKraOccupationDtlOth", "");
 	            jsonObject.addProperty("cKraAnnualInc", income);
 	            jsonObject.addProperty("cKraAnnualIncDt", "");
