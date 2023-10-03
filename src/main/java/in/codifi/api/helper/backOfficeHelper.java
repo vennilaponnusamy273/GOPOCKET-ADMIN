@@ -402,17 +402,17 @@ public class backOfficeHelper {
 	            
 	            //brokerage
 	            
-	            jsonObject.addProperty("cBrkgBasketNSE",  "GOPOCKET");
-	            jsonObject.addProperty("cBrkgBasketBSE",  "GOPOCKET");
-	            jsonObject.addProperty("cBrkgBasketFO",  "GOPOCKET");
-	            jsonObject.addProperty("cBrkgBasketCDS",  "GOPOCKET");
-	            jsonObject.addProperty("cBrkgBasketCOMM",  "GOPOCKET");
-	            jsonObject.addProperty("cBrkgBasketBSEFO",  "GOPOCKET");
-	            jsonObject.addProperty("cBrkgBasketBSECDS",  "GOPOCKET");
-	            ZonedDateTime currentDateTime = ZonedDateTime.now(ZoneOffset.UTC);
-	            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-	            String formattedDateTime = currentDateTime.format(formatter);
-	            jsonObject.addProperty("dBrkgEffectDate", formattedDateTime);
+	            jsonObject.addProperty("cBrkgBasketNSE",  "");
+	            jsonObject.addProperty("cBrkgBasketBSE",  "");
+	            jsonObject.addProperty("cBrkgBasketFO",  "");
+	            jsonObject.addProperty("cBrkgBasketCDS",  "");
+	            jsonObject.addProperty("cBrkgBasketCOMM",  "");
+	            jsonObject.addProperty("cBrkgBasketBSEFO",  "");
+	            jsonObject.addProperty("cBrkgBasketBSECDS",  "");
+//	            ZonedDateTime currentDateTime = ZonedDateTime.now(ZoneOffset.UTC);
+//	            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+//	            String formattedDateTime = currentDateTime.format(formatter);
+	            jsonObject.addProperty("dBrkgEffectDate", "");
 	            jsonObject.addProperty("nDelCMBrkg",  "");
 	            jsonObject.addProperty("nDelCMBrkgMin", "");
 	            jsonObject.addProperty("nSqCMBrkg",  "");
