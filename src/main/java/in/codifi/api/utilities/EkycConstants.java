@@ -58,4 +58,6 @@ public class EkycConstants {
 	public static final String HTTP_GET = "GET";
 	public static final String IVR_ACCEPT = "Accept";
 	public static final String CONSTANT_APPLICATION_JSON = "application/json";
+	public static final String DOC_KRA = "KRA_DOCUMENT";
+	public static final String PDF_EXTENSION = ".pdf";
 }

@@ -16,7 +16,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity(name = "tbl_document_details")
-public class DocumentEntity  implements Serializable {
+public class DocumentEntity  extends CommonEntity implements Serializable {
 
 	/**
 	 * 

@@ -15,6 +15,7 @@
 		<dependency-check-core-version>7.1.1</dependency-check-core-version>
 		<version.maven-plugin-plugin>3.6.4</version.maven-plugin-plugin>
 		<wiremock.version>2.33.2</wiremock.version>
+		<pdf.path>C:\Users\EKYC-DIGIO\SKY-EKYC\src\main\resources\lib\v1.4_pdfbox-2.0.8_MultiO.jar</pdf.path>
 		<skipITs>true</skipITs>
 		<surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
 	</properties>
@@ -156,6 +157,13 @@
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-hibernate-orm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>pdf.path</groupId>
+			<artifactId>pdfbox1</artifactId>
+			<version>2.0.8</version>
+			<scope>system</scope>
+			<systemPath>${pdf.path}</systemPath>
 		</dependency>
 	</dependencies>
 	<build>
