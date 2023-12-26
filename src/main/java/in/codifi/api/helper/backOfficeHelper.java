@@ -161,7 +161,7 @@ public class backOfficeHelper {
 					} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "10-20 lakhs")) {
 						income = "04";
 					} else if (StringUtil.isEqual(getProfile.getAnnualIncome(), "More than 20 lakhs")) {
-						income = "05";
+						income = "06";
 					}
 	            jsonObject.addProperty("cOccupation",occupation);
 	            jsonObject.addProperty("cAnnualIncome ",income);
