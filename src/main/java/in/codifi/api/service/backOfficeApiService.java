@@ -65,7 +65,7 @@ public class backOfficeApiService implements IbackOfficeApiService {
 	        logger.debug("JSON Content: {}", jsonContent);
 
 	        RequestBody body = RequestBody.create(mediaType, jsonContent);
-
+	        CommonMethods.trustedManagement();
 	        Request request = new Request.Builder()
 	                .url(apiUrl)
 	                .method("POST", body) // Use the appropriate method (POST or GET)
