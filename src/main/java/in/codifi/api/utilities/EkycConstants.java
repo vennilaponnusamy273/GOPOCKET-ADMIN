@@ -60,4 +60,8 @@ public class EkycConstants {
 	public static final String CONSTANT_APPLICATION_JSON = "application/json";
 	public static final String DOC_KRA = "KRA_DOCUMENT";
 	public static final String PDF_EXTENSION = ".pdf";
+	
+	public static final String UNDERSCORE = "_";
+	public static final String NOM_PROOF = "NOMINEE_PROOF";
+	public static final String GUARDINA_PROOF = "GUARDIAN_PROOF";
 }

@@ -14,11 +14,15 @@ import in.codifi.api.entity.ApiStatusEntity;
 import in.codifi.api.entity.ApplicationUserEntity;
 import in.codifi.api.entity.DocumentEntity;
 import in.codifi.api.entity.EmailTemplateEntity;
+import in.codifi.api.entity.GuardianEntity;
+import in.codifi.api.entity.NomineeEntity;
 import in.codifi.api.repository.ApiStatusRepository;
 import in.codifi.api.repository.ApplicationUserRepository;
 import in.codifi.api.repository.DocumentEntityRepository;
 import in.codifi.api.repository.EmailTemplateRepository;
+import in.codifi.api.repository.GuardianRepository;
 import in.codifi.api.repository.KraKeyValueRepository;
+import in.codifi.api.repository.NomineeRepository;
 import in.codifi.api.request.model.ApiStatusModel;
 import in.codifi.api.response.model.ResponseModel;
 import in.codifi.api.service.spec.IApiStatusService;
@@ -44,6 +48,11 @@ public class ApiStatusService implements IApiStatusService {
 	ApplicationUserRepository applicationUserRepository;
 	@Inject
 	DocumentEntityRepository documentRepository;
+	
+	@Inject
+	NomineeRepository nomineeRepository;
+	@Inject
+	GuardianRepository guardianRepository;
 
 	@Override
 	public ResponseModel updateStatus(ApiStatusModel apiStatusModel) {
@@ -55,7 +64,8 @@ public class ApiStatusService implements IApiStatusService {
 
 			if (status == 0 || status == 1) {
 				boolean isPageDocument = stage.equals(EkycConstants.PAGE_DOCUMENT);
-				ApiStatusEntity checkExit;
+				boolean isPageNominee = stage.equals(EkycConstants.PAGE_NOMINEE);
+				ApiStatusEntity checkExit = null;
 
 				if (isPageDocument) {
 					checkExit = apiStatusRepository.findByApplicationIdAndStageAndDocType(
@@ -69,11 +79,22 @@ public class ApiStatusService implements IApiStatusService {
 							documentRepository.save(documentEntity);
 						}
 					}
-				} else {
+				}else if (isPageNominee&&status == 0) {
+					checkExit = apiStatusRepository.findByApplicationIdAndStageAndNomineeId(
+							apiStatusModel.getApplicationId(), stage, apiStatusModel.getNomineeId());
+					if (checkExit != null) {
+						deleteNom(apiStatusModel.getApplicationId(),apiStatusModel.getNomineeId());
+					}else {
+						deleteNom(apiStatusModel.getApplicationId(),apiStatusModel.getNomineeId());
+					}
+				}else if (isPageNominee&&status == 1) {
+					checkExit = apiStatusRepository.findByApplicationIdAndStageAndNomineeId(
+							apiStatusModel.getApplicationId(), stage, apiStatusModel.getNomineeId());
+				}
+				else {
 					checkExit = apiStatusRepository.findByApplicationIdAndStage(apiStatusModel.getApplicationId(),
 							stage);
 				}
-
 				if (checkExit == null) {
 					ApiStatusEntity apiStatusEntity = new ApiStatusEntity();
 					apiStatusEntity.setApplicationId(apiStatusModel.getApplicationId());
@@ -81,9 +102,11 @@ public class ApiStatusService implements IApiStatusService {
 					apiStatusEntity.setStatus(status);
 					apiStatusEntity.setApprovedBy(apiStatusModel.getApprovedBy());
 					apiStatusEntity.setReason(apiStatusModel.getReason());
-
 					if (isPageDocument) {
 						apiStatusEntity.setDocType(apiStatusModel.getDocType());
+					}
+					if (isPageNominee) {
+						apiStatusEntity.setNomineeId(apiStatusModel.getNomineeId());
 					}
 					checkExit = apiStatusEntity;
 				} else {
@@ -106,6 +129,59 @@ public class ApiStatusService implements IApiStatusService {
 		return response;
 	}
 
+	public ResponseModel deleteNom(long applicationId,long id) {
+		ResponseModel responseModel = new ResponseModel();
+		try {
+		Optional<NomineeEntity> nominee = nomineeRepository.findById(id);
+		if (nominee.isPresent()) {
+			GuardianEntity savedGuardianEntity = guardianRepository.findByNomineeId(id);
+			if (savedGuardianEntity != null && savedGuardianEntity.getId() > 0) {
+				guardianRepository.deleteById(savedGuardianEntity.getId());
+				String GurdiandocId=nominee.get().getNomineeId() + EkycConstants.UNDERSCORE + EkycConstants.GUARDINA_PROOF;
+				DocumentEntity documentEntitygur = documentRepository.findByApplicationIdAndDocumentType(applicationId,GurdiandocId);
+				documentRepository.deleteById(documentEntitygur.getId());
+			}
+			String NomineedocId=nominee.get().getNomineeId() + EkycConstants.UNDERSCORE + EkycConstants.NOM_PROOF;
+			DocumentEntity documentEntity = documentRepository.findByApplicationIdAndDocumentType(applicationId,NomineedocId);
+			documentRepository.deleteById(documentEntity.getId());
+			nomineeRepository.deleteById(id);
+			updateAllocaionAfterDelete(nominee.get().getApplicationId());
+			responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+			responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+		}
+		} catch (Exception e) {
+			commonMethods.SaveLog(id,"NomineeService","deleteNomadmin",e.getMessage());
+			commonMethods.sendErrorMail("An error occurred while processing your request, In deleteNomAdmin for the Error: " + e.getMessage(),"ERR-001");
+			responseModel = commonMethods.constructFailedMsg(e.getMessage());
+		}
+		return responseModel;
+	}
+	
+	public void updateAllocaionAfterDelete(long applicationId) {
+		ResponseModel responseModel = new ResponseModel();
+		try {
+		responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+		responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+		List<NomineeEntity> nomineeEntities = nomineeRepository.findByapplicationId(applicationId);
+		if (nomineeEntities.size() == 1) {
+			for (NomineeEntity neList : nomineeEntities) {
+				neList.setAllocation(100);
+			}
+		} else if (nomineeEntities.size() == 2) {
+			for (NomineeEntity neList : nomineeEntities) {
+				neList.setAllocation(50);
+			}
+			responseModel.setResult(nomineeEntities);
+		}
+		nomineeRepository.saveAll(nomineeEntities);
+	
+	} catch (Exception e) {
+		commonMethods.SaveLog(applicationId,"NomineeService","updateAllocaionAfterDelete",e.getMessage());
+		commonMethods.sendErrorMail("An error occurred while processing your request, In updateAllocaionAfterDelete for the Error: " + e.getMessage(),"ERR-001");
+		responseModel = commonMethods.constructFailedMsg(e.getMessage());
+	}
+	}
+	
 	@Override
 	public ResponseModel getStatus(long applicationId) {
 		ResponseModel response = new ResponseModel();
