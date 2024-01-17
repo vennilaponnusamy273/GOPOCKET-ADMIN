@@ -339,7 +339,7 @@ public class backOfficeHelper {
 	            jsonObject.addProperty("cMicr",getBankDetails.getMicr());
 	            jsonObject.addProperty("cAcType", "Savings");
 	            jsonObject.addProperty("cAcNo", getBankDetails.getAccountNo());
-	            jsonObject.addProperty("cBankClientName", userEntity.get().getUserName());
+	            jsonObject.addProperty("cBankClientName",  userEntity.get().getUserName().substring(0, Math.min(userEntity.get().getUserName().length(), 39)));
 	            
 	            //Secondary Bank Details
 	            jsonObject.addProperty("cSecIfsc", "");
