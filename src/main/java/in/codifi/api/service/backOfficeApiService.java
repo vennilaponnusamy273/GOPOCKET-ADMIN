@@ -8,6 +8,9 @@ import javax.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import in.codifi.api.config.ApplicationProperties;
 import in.codifi.api.controller.spec.IAdminController;
 import in.codifi.api.entity.ApplicationUserEntity;
@@ -15,6 +18,7 @@ import in.codifi.api.entity.BackOfficeApiEntity;
 import in.codifi.api.helper.backOfficeHelper;
 import in.codifi.api.repository.ApplicationUserRepository;
 import in.codifi.api.repository.BackOfficeApiRepository;
+import in.codifi.api.request.model.VerifyUserRequest;
 import in.codifi.api.response.model.ResponseModel;
 import in.codifi.api.service.spec.IbackOfficeApiService;
 import in.codifi.api.utilities.CommonMail;
@@ -51,6 +55,8 @@ public class backOfficeApiService implements IbackOfficeApiService {
 	
 	@Inject 
 	CommonMail commonMail;
+	@Inject
+	keylockService KeylockService;
 	
 	@Override
 	public ResponseModel callBckOfficeAPI(long applicationId) {
@@ -85,6 +91,28 @@ public class backOfficeApiService implements IbackOfficeApiService {
 	                backOfficeApiEntity.setRes(responseBody);
 	                backOfficeApiRepository.save(backOfficeApiEntity);
 	                sendRiskDoc(applicationId);
+	                // Use Jackson ObjectMapper to parse the JSON
+	                ObjectMapper objectMapper = new ObjectMapper();
+	                JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+	                // Extract the value of the "message" field
+	                String message = jsonNode.get("message").asText();
+	               // String message = "Record imported Successfully in SharePro";
+	                if (message != null && message.contains("Record imported Successfully in SharePro")) {
+	                    Optional<ApplicationUserEntity> userEntity = applicationUserRepository.findById(applicationId);
+	                    if (userEntity.isPresent()) {
+	                        VerifyUserRequest verifyUserRequest = new VerifyUserRequest();
+	                        verifyUserRequest.setPan(userEntity.get().getPanNumber());
+	                        verifyUserRequest.setUserId(userEntity.get().getMobileNo().toString());
+	                        verifyUserRequest.setFirstName(userEntity.get().getFirstName());
+	                        verifyUserRequest.setLastName(userEntity.get().getLastName());
+	                        verifyUserRequest.setUcc(userEntity.get().getUccCodePrefix() + userEntity.get().getUccCodeSuffix());
+	                        KeylockService.UpdateActiveUSer(verifyUserRequest);
+	                    } else {
+	                        System.out.println("User not found for applicationId: " + applicationId);
+	                    }
+	                }
+
 	                logger.debug("Response Body: {}", responseBody);
 	                responseModel.setResult(responseBody);
 	            } else {

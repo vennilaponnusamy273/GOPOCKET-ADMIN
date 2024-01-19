@@ -34,39 +34,61 @@ public class AddressEntity extends CommonEntity implements Serializable {
 	@Column(name = "access_token")
 	private String accessToken;
 
-	@Column(name = "care_of")
-	private String co;
-
 	@Column(name = "application_id")
 	private Long applicationId;
 
 	@Column(name = "flatno")
 	private String flatNo;
 
-	@Column(name = "address1")
-	private String address1;
+	@Column(name = "digi_cur_address")
+	private String digiCurAddress;
 
-	@Column(name = "address2")
-	private String address2;
+	@Column(name = "digi_cur_locality")
+	private String digiCurLocality;
 
-	@Column(name = "landmark")
-	private String landmark;
+	@Column(name = "digi_cur_district")
+	private String digiCurDistrict;
 
-	@Column(name = "street")
-	private String street;
+	@Column(name = "digi_cur_state")
+	private String digiCurState;
 
-	@Column(name = "district")
-	private String district;
+	@Column(name = "digi_cur_country")
+	private String digiCurCountry;
 
-	@Column(name = "state")
-	private String state;
+	@Column(name = "digi_cur_pincode")
+	private String digiCurPincode;
 
-	@Column(name = "country")
-	private String country;
+	@Column(name = "digi_per_address")
+	private String digiPerAddress;
 
-	@Column(name = "pincode")
-	private Long pincode;
+	@Column(name = "digi_per_locality")
+	private String digiPerLocality;
 
+	@Column(name = "digi_per_district")
+	private String digiPerDistrict;
+
+	@Column(name = "digi_per_state")
+	private String digiPerState;
+
+	@Column(name = "digi_per_country")
+	private String digiPerCountry;
+
+	@Column(name = "digi_dob")
+	private String digidob;
+	
+	@Column(name = "digi_name")
+	private String diginame;
+	
+	@Column(name = "digi_gender")
+	private String digigender;
+	
+	@Column(name = "digi_per_pincode")
+	private String digiPerPincode;
+
+
+	@Column(name = "aatharNo")
+	private String aadharNo;
+	
 	@Column(name = "is_kra")
 	private int isKra;
 
@@ -112,8 +134,6 @@ public class AddressEntity extends CommonEntity implements Serializable {
 	@Column(name = "kra_per_country")
 	private String kraPerCountry;
 	
-	@Column(name = "aatharNo")
-	private String aadharNo;
 	
 	@Column(name = "kra_address_proof")
 	private String kraaddressproof;

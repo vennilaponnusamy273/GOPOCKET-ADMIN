@@ -196,37 +196,50 @@ public class backOfficeHelper {
 	            jsonObject.addProperty("cAddPrf", kraAddressProof != null ? kraAddressProof : "ADHAAR");
 	            StringBuilder addressBuilder = new StringBuilder();
 	            if (getAddress != null) {
-				    if (getAddress.getFlatNo() != null) {
-				        addressBuilder.append(getAddress.getFlatNo());
-				    }
+					   /** if (getAddress.getFlatNo() != null) {
+					        addressBuilder.append(getAddress.getFlatNo());
+					    }
 
-				    if (getAddress.getStreet() != null) {
-				        if (addressBuilder.length() > 0) {
-				            addressBuilder.append(" ");
-				        }
-				        addressBuilder.append(getAddress.getStreet());
-				    }
-				    if (getAddress.getLandmark() != null) {
-				        if (addressBuilder.length() > 0) {
-				            addressBuilder.append(" ");
-				        }
-				        addressBuilder.append(getAddress.getLandmark());
-				    }
-				    if (getAddress.getAddress1() != null) {
-				        if (addressBuilder.length() > 0) {
-				            addressBuilder.append(" ");
-				        }
-				        addressBuilder.append(getAddress.getAddress1());
-				    }}
-				    String fullAddress = addressBuilder.toString();
+					    if (getAddress.getStreet() != null) {
+					        if (addressBuilder.length() > 0) {
+					            addressBuilder.append(" ");
+					        }
+					        addressBuilder.append(getAddress.getStreet());
+					    }
+					    if (getAddress.getLandmark() != null) {
+					        if (addressBuilder.length() > 0) {
+					            addressBuilder.append(" ");
+					        }
+					        addressBuilder.append(getAddress.getLandmark());
+					    }**/
+					    if (getAddress.getDigiPerAddress() != null) {
+					        if (addressBuilder.length() > 0) {
+					            addressBuilder.append(" ");
+					        }
+					        addressBuilder.append(getAddress.getDigiPerAddress());
+					    }}
+					    String fullAddress = addressBuilder.toString();
+					    String PerAddress1 = "";
+					    String PerAddress2 = "";
+					    String PerAddress3 = "";
+
+					    if (fullAddress.length() <= 50) {
+					        PerAddress1 = fullAddress;
+					    } else if (fullAddress.length() <= 100) {
+					        PerAddress1 = fullAddress.substring(0, 50);
+					        PerAddress2 = fullAddress.substring(50);
+					    } else {
+					        PerAddress1 = fullAddress.substring(0, 50);
+					        PerAddress2 = fullAddress.substring(50, 100);
+					        PerAddress3 = fullAddress.substring(100);
+					    }
 	            
-	            String PerAddress1=(getAddress.getIsKra()==1?getAddress.getKraPerAddress1():fullAddress);
-				String PerAddress2=(getAddress.getIsKra()==1?getAddress.getKraPerAddress2():getAddress.getAddress2());
-				String PerAddress3=(getAddress.getIsKra()==1?getAddress.getKraPerAddress3():getAddress.getAddress2());
-				String State=(getAddress.getIsKra()==1?getAddress.getKraPerState():getAddress.getState());
-				String City=(getAddress.getIsKra()==1?getAddress.getKraPerCity():getAddress.getLandmark());
-				//String dist=(getAddress.getIsKra()==1?getAddress.getKraPerCity():getAddress.getDistrict());
-				String Pincode=(getAddress.getIsKra()==1?Integer.toString(getAddress.getKraPerPin()):getAddress.getPincode().toString());
+	             PerAddress1=(getAddress.getIsKra()==1?getAddress.getKraPerAddress1():PerAddress1!=null?PerAddress1:"");
+				 PerAddress2=(getAddress.getIsKra()==1?getAddress.getKraPerAddress2():PerAddress2!=null?PerAddress2:"");
+				 PerAddress3=(getAddress.getIsKra()==1?getAddress.getKraPerAddress3():PerAddress3!=null?PerAddress3:"");
+				String State=(getAddress.getIsKra()==1?getAddress.getKraPerState():getAddress.getDigiPerState());
+				String City=(getAddress.getIsKra()==1?getAddress.getKraPerCity():getAddress.getDigiPerDistrict());
+				String Pincode=(getAddress.getIsKra()==1?Integer.toString(getAddress.getKraPerPin()):getAddress.getDigiPerPincode());
 	            //address
 				String kraproof="";
 				KraKeyValueEntity kraKeyValueEntityproof=null;
