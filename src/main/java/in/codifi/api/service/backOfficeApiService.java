@@ -7,6 +7,7 @@ import javax.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -107,7 +108,21 @@ public class backOfficeApiService implements IbackOfficeApiService {
 	                        verifyUserRequest.setFirstName(userEntity.get().getFirstName());
 	                        verifyUserRequest.setLastName(userEntity.get().getLastName());
 	                        verifyUserRequest.setUcc(userEntity.get().getUccCodePrefix() + userEntity.get().getUccCodeSuffix());
-	                        KeylockService.UpdateActiveUSer(verifyUserRequest);
+	                        String keylockResponse=KeylockService.UpdateActiveUSer(verifyUserRequest);
+	                        System.out.println("the keylockResponse"+keylockResponse);
+	                        // Parse the JSON response
+	                        JSONObject jsonResponse = new JSONObject(keylockResponse);
+
+	                        // Extract values from the JSON object
+	                        String keyclockstatus = jsonResponse.optString("status");
+	                        String keyclockmessage = jsonResponse.optString("message");
+	                        BackOfficeApiEntity backOfficeApiEntitykeylock = backOfficeApiRepository.findByapplicationId(applicationId);
+	                        if(backOfficeApiEntitykeylock!=null) {
+	                        	backOfficeApiEntitykeylock.setKeylockMessage(keyclockmessage);
+	                        	backOfficeApiEntitykeylock.setKeylockStatus(keyclockstatus);
+	                        	backOfficeApiEntitykeylock.setKeylockResponse(keylockResponse.toString());
+	                        	backOfficeApiRepository.save(backOfficeApiEntitykeylock);
+	                        }
 	                    } else {
 	                        System.out.println("User not found for applicationId: " + applicationId);
 	                    }
@@ -120,18 +135,13 @@ public class backOfficeApiService implements IbackOfficeApiService {
 	                logger.error("API URL: {}", apiUrl);
 	                logger.error("Request Headers: {}", request.headers());
 	                logger.error("Request Body: {}", jsonContent);
-	                // Log the exception stack trace
-	              //  logger.error("Exception Stack Trace: ", e);
-	                // Handle the error and set an appropriate response in responseModel
 	                responseModel.setResult("API request failed with status code: " + response.code());
 	            }} catch (IOException e) {
 	            logger.error("An error occurred while making the API request.", e);
-	            // Handle the exception and set an appropriate response in responseModel
 	            responseModel.setResult("An error occurred while making the API request: " + e.getMessage());
 	        }
 	    } catch (Exception e) {
 	        logger.error("An error occurred.", e);
-	        // Handle the exception and set an appropriate response in responseModel
 	        responseModel.setResult("An error occurred: " + e.getMessage());
 	    }
 

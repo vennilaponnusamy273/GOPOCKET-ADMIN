@@ -38,4 +38,13 @@ public class BackOfficeApiEntity extends CommonEntity implements Serializable {
 	@Lob
 	@Column(name = "jsondata")
 	public String jsonData;
+	
+	@Column(name = "keylockStatus")
+	public String keylockStatus;
+	
+	@Column(name = "keylockMessage")
+	public String keylockMessage;
+	
+	@Column(name = "keylockResponse")
+	public String keylockResponse;
 }
