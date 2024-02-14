@@ -270,12 +270,13 @@ public class backOfficeHelper {
 					kraKeyValueEntityproof=kraKeyValueRepository.findByMasterIdAndMasterNameAndKraValue("9","PROOF OF ADDRESS", kraproof);
 				}
 				
-				KraKeyValueEntity kraKeyValueEntityState = kraKeyValueRepository
-						.findByMasterIdAndMasterNameAndKraValue("1", "STATE", State);
-				String kraValuestate= kraKeyValueEntityState.getKraKey();
-
-				// Extract the last three characters
-				String kraValuestateSubstring = kraValuestate.substring(1);
+//				KraKeyValueEntity kraKeyValueEntityState = kraKeyValueRepository
+//						.findByMasterIdAndMasterNameAndKraValue("1", "STATE", State);
+//				String kraValuestate= kraKeyValueEntityState.getKraKey();
+//
+//				// Extract the last three characters
+//				String kraValuestateSubstring = kraValuestate.substring(1);
+				String kraValuestateSubstring = backOfficeRestService.getKRAStateCodeList(State);
 
 
 				System.out.println("kraValuestateSubstring"+kraValuestateSubstring); // This will print "027" or the last three characters

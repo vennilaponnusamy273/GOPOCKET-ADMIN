@@ -54,7 +54,33 @@ public class BackOfficeRestService {
         }
         return stateCode;
 	}
+	public String getKRAStateCodeList(String state) {
+        String stateCode = null;
 
+        try {
+            String requestBody = "{\r\n\r\n    \"key\": \"" + props.getBackofficeKey() + "\",\r\n\r\n    \"cSearch\": \"" + state + "\"\r\n\r\n}";
+            
+            // Assuming iBackOfficeRestService.getStatecode returns javax.ws.rs.core.Response
+            Response response = iBackOfficeRestService.getKRAStateCodeList(requestBody);
+
+            // Ensure the response has a successful status code (200)
+            if (response.getStatus() == 200) {
+                // Extract the entity (response body) from the Response
+                String responseBody = response.readEntity(String.class);
+                System.out.println("the responseBody"+responseBody);
+             // Parse the JSON response
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+                // Extract the "CODE" value
+                stateCode = jsonNode.get(0).get("CODE").asText();
+                System.out.println("the stateCode"+stateCode);
+            }
+        } catch (IOException e) {
+            e.printStackTrace(); 
+        }
+        return stateCode;
+	}
 	public String getKRAStateCityList(String stateorcountry) {
 	    String kraStateCity = null;
 

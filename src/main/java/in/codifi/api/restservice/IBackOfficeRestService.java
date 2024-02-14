@@ -30,6 +30,13 @@ public interface IBackOfficeRestService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "")
 	Response getKRAStateCityList(String requestBody);
+	
+	@Path("/getKRAStateCodeList")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@APIResponse(description = "")
+	Response getKRAStateCodeList(@RequestBody String body);
 
 	
 }
