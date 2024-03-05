@@ -588,15 +588,15 @@ public class backOfficeHelper {
 	            //running acc 
 	          
 	            jsonObject.addProperty("cRunAcSegment","Securities");
-	            jsonObject.addProperty("dRunAcRcvdDt",  "");
+	            jsonObject.addProperty("dRunAcRcvdDt",  formattedDate);
 	            jsonObject.addProperty("dRunAcRvkdDt", "");
-	            jsonObject.addProperty("nSettleType",  "");
+	            jsonObject.addProperty("nSettleType",  "2");
 	            jsonObject.addProperty("Retainable", "");
 	            
 	            //comm
-	            jsonObject.addProperty("dRunAcRcvdDtCom", "");
+	            jsonObject.addProperty("dRunAcRcvdDtCom", formattedDate);
 	            jsonObject.addProperty("dRunAcRvkdDtCom", "");
-	            jsonObject.addProperty("nSettleTypeCom",  "");
+	            jsonObject.addProperty("nSettleTypeCom",  "2");
 	            jsonObject.addProperty("RetainableCom",  "");
 	            
 	            
