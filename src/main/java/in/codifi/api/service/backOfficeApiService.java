@@ -101,11 +101,11 @@ public class backOfficeApiService implements IbackOfficeApiService {
 	               // String message = "Record imported Successfully in SharePro";
 	                if (message != null && message.contains("Record imported Successfully in SharePro")) {
 	                    Optional<ApplicationUserEntity> userEntity = applicationUserRepository.findById(applicationId);
-	                    if (userEntity.isPresent()) {
+	                    if (userEntity.isPresent()&&userEntity.get().getUserName()!=null) {
 	                        VerifyUserRequest verifyUserRequest = new VerifyUserRequest();
 	                        verifyUserRequest.setPan(userEntity.get().getPanNumber());
 	                        verifyUserRequest.setUserId(userEntity.get().getMobileNo().toString());
-	                        verifyUserRequest.setFirstName(userEntity.get().getFirstName());
+	                        verifyUserRequest.setFirstName(userEntity.get().getFirstName()!=null?userEntity.get().getFirstName():userEntity.get().getUserName());
 	                        verifyUserRequest.setLastName(userEntity.get().getLastName());
 	                        verifyUserRequest.setUcc(userEntity.get().getUccCodePrefix() + userEntity.get().getUccCodeSuffix());
 	                        String keylockResponse=KeylockService.UpdateActiveUSer(verifyUserRequest);
