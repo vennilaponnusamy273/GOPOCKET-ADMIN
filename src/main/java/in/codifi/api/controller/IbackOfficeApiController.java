@@ -20,5 +20,14 @@ public class IbackOfficeApiController implements backOfficeApiController{
 	}
 		return responseModel;
 	}
+	
+	@Override
+	public ResponseModel sendRiskDisClosure(long applicationId) {
+		ResponseModel responseModel=new ResponseModel();
+	if(applicationId>0) {
+		responseModel=ibackOfficeApiService.sendRiskDoc(applicationId);
+	}
+		return responseModel;
+	}
 
 }

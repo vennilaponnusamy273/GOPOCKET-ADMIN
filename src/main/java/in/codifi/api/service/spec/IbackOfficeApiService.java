@@ -6,4 +6,6 @@ public interface IbackOfficeApiService {
 
 	ResponseModel callBckOfficeAPI(long applicationId);
 
+	ResponseModel sendRiskDoc(long applicationId);
+
 }

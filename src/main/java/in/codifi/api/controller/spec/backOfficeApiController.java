@@ -18,4 +18,10 @@ public interface backOfficeApiController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "Method to get bank Details")
 	ResponseModel updateBackoffice(@NotNull @QueryParam("applicationId") long applicationId);
+	
+	@Path("/sendRiskDisClosure")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@APIResponse(description = "Method to get bank Details")
+	ResponseModel sendRiskDisClosure(@NotNull @QueryParam("applicationId") long applicationId);
 }
