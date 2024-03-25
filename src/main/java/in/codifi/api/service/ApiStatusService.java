@@ -116,6 +116,24 @@ public class ApiStatusService implements IApiStatusService {
 				}
 
 				apiStatusRepository.save(checkExit);
+				if(stage.equals(EkycConstants.PAGE_PAN)) {
+					checkExit = apiStatusRepository.findByApplicationIdAndStage(apiStatusModel.getApplicationId(),
+							"4");
+					if(checkExit==null) {
+						ApiStatusEntity apiStatusEntity = new ApiStatusEntity();
+						apiStatusEntity.setApplicationId(apiStatusModel.getApplicationId());
+						apiStatusEntity.setStage("4");
+						apiStatusEntity.setStatus(0);
+						apiStatusEntity.setApprovedBy(apiStatusModel.getApprovedBy());
+						apiStatusEntity.setReason("Kindly Update Profile details");
+						checkExit = apiStatusEntity;
+					} else {
+						checkExit.setReason("Kindly Update Profile details");
+						checkExit.setStatus(0);
+						checkExit.setApprovedBy(apiStatusModel.getApprovedBy());
+					}
+					apiStatusRepository.save(checkExit);
+				}
 				response.setMessage(EkycConstants.SUCCESS_MSG);
 				response.setStat(EkycConstants.SUCCESS_STATUS);
 				response.setResult(checkExit);
